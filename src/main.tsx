@@ -1,17 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'; // Import de React Router
 import './css/index.css';
 
-// Vérifie si #root existe
+// Import des pages
+import CatPage from './pages/CategoriePage'
+import Test from '../src/component/Categorie';
+
 const rootElement = document.getElementById('root');
 console.log("Root element found:", rootElement);
 
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-      <div>Hello World!</div>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={< CatPage/>} />,
+          <Route path="/cat" element={<Test/>} />
+        </Routes>
+      </BrowserRouter>
     </React.StrictMode>
   );
-} else {
-  console.error("Element #root non trouvé !");
 }
