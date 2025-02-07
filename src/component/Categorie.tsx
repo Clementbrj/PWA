@@ -1,44 +1,108 @@
-import React from "react";
-import { catdb } from "../bdd/catbdd.tsx";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { catdb } from "../bdd/bdd.tsx";
 
-// Définit la table Category
+// Structure & type la categorie
 interface Category {
+  id?: number; // Ajouté pour gérer l'ID généré par IndexedDB (AUTO_INCREMENT)
   name: string;
   desc: string;
 }
 
-async function loadCategoriesFromJSON() {
-  try {
-    //Lecture du JSON (ne PAS IMPORTER !!!! ça ne marchee pas..)
-    const data = await fetch("src/bdd/store/catjson.json");
+export default function CategoryComponent() {
+  // VARIABLE AVEC ETAT-----------------
+  // Ajout
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryDesc, setCategoryDesc] = useState("");
 
-    if (!data.ok) {
-      throw new Error(`Erreur lors de la récupération du fichier JSON : ${data.statusText}`);
-    }
+// Visionner / Naviguer
+  const [categories, setCategories] = useState<Category[]>([]);
+  const navigate = useNavigate();
+//------------------------------------------
 
-    const list: Category[] = await data.json();
 
+  // Charger les categories depuis IndexedDB ---
+  const AfficheCategorie = async () => {
     const db = await catdb();
-    const transaction = db.transaction("categories", "readwrite");
-    const store = transaction.objectStore("categories");
+    const transaction = db.transaction(["categories"], "readonly");
+    const categoryStore = transaction.objectStore("categories");
+    const recupCategorie = categoryStore.getAll();
 
-    // On s'assure que les données respectent le type `Category`
-    list.forEach((category: Category) => {
-      store.add(category);
+    recupCategorie.onsuccess = () => {
+      if (recupCategorie.result) {
+        setCategories(recupCategorie.result as Category[]);
+      }
+    };
+
+    recupCategorie.onerror = () => {
+      console.error("Probleme de chargement des Cat.");
+    };
+  };
+ 
+  // Charger les categorie ---
+  useEffect(() => {
+    AfficheCategorie();
+  }, []);
+
+  // Gestion d'envoi ---
+  const envoi = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    // Variables d'interactions
+    const db = await catdb();
+    const transaction = db.transaction(["categories"], "readwrite"); 
+    const categorie = transaction.objectStore("categories");
+
+    // Ajouter une categorie --- 
+    const categoryRequest = categorie.add({ name: categoryName, desc: categoryDesc });
+    await new Promise<void>((resolve, reject) => {
+      categoryRequest.onsuccess = () => {
+        console.log("Cat ajoutée");
+        resolve();
+      };
+      categoryRequest.onerror = () => reject(categoryRequest.error);
     });
 
-    alert("Catégories importées depuis JSON !");
-  } catch{
-    alert("PROBLEME DANS LEE TRY CATEGORIE");
-  }
-}
+    // Recharger les categories après l'ajout
+    AfficheCategorie();
+    setCategoryName("");
+    setCategoryDesc("");
+  };
 
+  // Navigation dans une categorie ---
+  const CategorieClick = (categoryId: number) => {
+    navigate(`/themes/${categoryId}`);
+  };
 
-export default function Test() {
   return (
     <div>
-      <h1>Chargement des catégories</h1>
-      <button onClick={loadCategoriesFromJSON}>Charger les catégories</button>
+      <form onSubmit={envoi}>
+        <h2>Ajouter une catégorie</h2>
+        <input
+          type="text"
+          placeholder="Nom de la catégorie"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Description de la catégorie"
+          value={categoryDesc}
+          onChange={(e) => setCategoryDesc(e.target.value)}
+        />
+        <button type="submit">Ajouter</button>
+      </form>
+      <div>
+        <h2>Liste des catégories</h2>
+
+        {/* Parcours l'objet categories (laisser id ? :/ ) */}
+        {categories.map((category) => (
+            <li key={category.id} onClick={() => CategorieClick(category.id!)}>
+              {category.name} (ID: {category.id}) - {category.desc}
+            </li>
+          ))}
+
+      </div>
     </div>
   );
 }

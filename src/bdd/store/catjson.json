@@ -1,7 +1,15 @@
-[
-    {
-      "name": "CAZEatégoriskibidie 1",
-      "desc": "Description de la catégorie 1"
+[{
+      "name": "",
+      "desc": "",
+      "themes": [{
+        "name": "",
+        "description":"",
+        "cards": [{
+          "title" : "",
+          "face":"",
+          "verso":""
+      }]
+    }] 
     }
   ]
   

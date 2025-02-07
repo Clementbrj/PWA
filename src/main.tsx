@@ -4,8 +4,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'; // Import de Re
 import './css/index.css';
 
 // Import des pages
-import CatPage from './pages/CategoriePage'
-import Test from '../src/component/Categorie';
+import Categorie from '../src/component/Categorie';
+import Theme from '../src/component/Theme';
 
 const rootElement = document.getElementById('root');
 console.log("Root element found:", rootElement);
@@ -15,8 +15,8 @@ if (rootElement) {
     <React.StrictMode>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={< CatPage/>} />,
-          <Route path="/cat" element={<Test/>} />
+          <Route path="/" element={<Categorie/>} />,
+          <Route path="/themes/:categoryID" element={<Theme/>} />
         </Routes>
       </BrowserRouter>
     </React.StrictMode>
