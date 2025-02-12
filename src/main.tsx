@@ -1,10 +1,26 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './css/index.css'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'; // Import de React Router
+import './css/index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Import des pages
+import Categorie from '../src/component/Categorie';
+import Theme from '../src/component/Theme';
+import Cartes from '../src/component/Cartes';
+
+const rootElement = document.getElementById('root');
+console.log("Root element found:", rootElement);
+
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Categorie/>} />,
+          <Route path="/themes/:categoryID" element={<Theme/>} />
+            <Route path="/cartes" element={<Cartes/>} />,
+        </Routes>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+}
