@@ -16,7 +16,7 @@ if (rootElement) {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Categorie/>} />,
-          <Route path="/themes/:categoryID" element={<Theme/>} />
+          <Route path="/themes/:categoryId" element={<Theme/>} />
         </Routes>
       </BrowserRouter>
     </React.StrictMode>
