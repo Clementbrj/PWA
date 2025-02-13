@@ -14,6 +14,7 @@ export default function ThemeComponent() {
   const [themeDesc, setThemeDesc] = useState("");
   const [themes, setThemes] = useState<Theme[]>([]);
   const { categoryId } = useParams<{ categoryId: string }>(); //----------------------- IMPORTE EN STRING A VOIR COMMENT L AVOIR EN NUMBER
+<<<<<<< HEAD
 
   const navigate = useNavigate();
 
@@ -22,12 +23,25 @@ export default function ThemeComponent() {
   // TEST POUR REGLER CATEGORY EN NUMBER (marche pas pour l'instant)
   
   const validCategoryId = categoryId ? parseInt(categoryId, 10) : NaN;
+=======
+  const navigate = useNavigate();
+
+  // --------------------------------------------------------
+  // TEST POUR REGLER CATEGORY EN NUMBER (marche pas pour l'instant)
+  // Vérifiez que categoryId est un nombre valide
+  console.error(categoryId);
+  const validCategoryId = Number(categoryId);
+>>>>>>> origin/branche_ethan
 
   useEffect(() => {
     if (isNaN(validCategoryId)) {
       console.error("categoryId is not a valid number");
       console.error(validCategoryId);
+<<<<<<< HEAD
       //navigate("/"); // Rediriger vers la page d'accueil ou une page d'erreur
+=======
+      navigate("/"); // Rediriger vers la page d'accueil ou une page d'erreur
+>>>>>>> origin/branche_ethan
     } else {
       AfficheTheme();
     }
@@ -42,7 +56,11 @@ export default function ThemeComponent() {
     const themeStore = transaction.objectStore("themes");
     const index = themeStore.index("categoryId");
     const request = index.getAll(validCategoryId); // Choppe les thèmes par rapport à l'id de la catégorie
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/branche_ethan
     request.onsuccess = () => {
       if (request.result) {
         setThemes(request.result as Theme[]);
@@ -56,7 +74,10 @@ export default function ThemeComponent() {
 
   // Envoi du formulaire pour ajouter un theme
   const envoi = async (event: React.FormEvent) => {
+<<<<<<< HEAD
     console.log(themes);
+=======
+>>>>>>> origin/branche_ethan
     event.preventDefault();
 
     const db = await catdb();
@@ -68,7 +89,11 @@ export default function ThemeComponent() {
       description: themeDesc,
       categoryId: validCategoryId,
     });
+<<<<<<< HEAD
     console.log(themeRequest);
+=======
+
+>>>>>>> origin/branche_ethan
     await new Promise<void>((resolve, reject) => {
       themeRequest.onsuccess = () => {
         console.log("Thème ajouté avec succès !");
