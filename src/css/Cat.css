@@ -1,42 +1,69 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* DIV DU FOND */
+.background{
+  background-color: rgb(223, 221, 221);
+  height: 99%;
+  width: 99%;
+  position: relative;
+}
+.background h2{
+  font-size:150%;
   text-align: center;
+  text-decoration:underline;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Formulaire pour créer une CAT (EN HAUT) */
+.FormContent{
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.FormContent input{
+  font-size: 120%;;
+  margin-top:0.1%;
+  display: flex;
+  box-shadow: brown 2;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.FormContent button{
+  margin-top:0.2%;
+  cursor:pointer;
+  border-radius: 20 20%;
+  font-size:120%;
 }
 
-.card {
-  padding: 2em;
+/* Liste des categories */
+.categoryList {
+  justify-content: center;
+  list-style-type: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5%;
 }
 
-.read-the-docs {
-  color: #888;
+.categoryItem {
+  word-wrap: break-word;
+
+  margin: 1% 1% 1% 1%;
+  text-align: center;
+
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+
+  border-radius: 4%;
+  box-shadow: 0 2px 10px rgba(151, 31, 31, 0.1);
+
+  padding: 0.4%;
+  width: 15%;
+  cursor: pointer;
+}
+
+.category-item:hover {
+  transform: translateY(-3px);
+  background-color: #f1d5d5;
+}
+
+.category-item h3 {
+  color: #423d3d;
 }

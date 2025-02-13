@@ -14,17 +14,14 @@ export async function catdb(): Promise<IDBDatabase> {
 
       // Créer thèmes
       if (!db.objectStoreNames.contains("themes")) {
-<<<<<<< HEAD
         const themeStore = db.createObjectStore("themes", { keyPath: "id", autoIncrement: true });
         themeStore.createIndex("categoryId", "categoryId", { unique: false }); // Crée un index sur categoryId
-=======
-        db.createObjectStore("themes", { keyPath: "id", autoIncrement: true });
->>>>>>> origin/branche_ethan
       }
 
       // Créer cartes
-      if (!db.objectStoreNames.contains("cards")) {
-        db.createObjectStore("cards", { keyPath: "id", autoIncrement: true });
+      if (!db.objectStoreNames.contains("cards")) { 
+        const cardStore = db.createObjectStore("cards", { keyPath: "id", autoIncrement: true });
+        cardStore.createIndex("themeId", "themeId", { unique: false }); // Crée un index sur categoryId
       }
     };
     // Gestion du résultat

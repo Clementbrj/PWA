@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { catdb } from "../bdd/bdd.tsx";
 
 interface Card {
@@ -9,7 +9,8 @@ interface Card {
     frontMedia?: string;
     backText?: string;
     backMedia?: string;
-    level?: number; // Nouveau champ pour le niveau
+    themeId?: number;
+    level?: number;
 }
 
 export default function CartesComponent() {
@@ -22,12 +23,16 @@ export default function CartesComponent() {
     const [mediaFile, setMediaFile] = useState<File | null>(null);
     const navigate = useNavigate();
 
+    const { themeId } = useParams<{ themeId: string }>();
+    const themeIdValid = themeId ? parseInt(themeId, 10) : NaN;
+
     // Charger les cartes depuis IndexedDB
     const AfficheCartes = async () => {
         const db = await catdb();
         const transaction = db.transaction(["cards"], "readonly");
         const cardStore = transaction.objectStore("cards");
-        const recupCartes = cardStore.getAll();
+        const index = cardStore.index("themeId"); // Utiliser l'index themeId
+        const recupCartes = index.getAll(themeIdValid); // Filtrer par themeId
 
         recupCartes.onsuccess = () => {
             if (recupCartes.result) {
@@ -37,8 +42,14 @@ export default function CartesComponent() {
     };
 
     useEffect(() => {
-        AfficheCartes();
-    }, []);
+        if (isNaN(themeIdValid)) {
+            console.error("ThemeId is not a valid number");
+            console.error(themeId);
+            // navigate("/"); // Rediriger vers la page d'accueil ou une page d'erreur
+        } else {
+            AfficheCartes();
+        }
+    }, [themeId]); // Mettre à jour lorsque themeId change
 
     // Gérer la sélection d'une carte
     useEffect(() => {
@@ -73,7 +84,8 @@ export default function CartesComponent() {
                 frontMedia: face === "front" ? mediaFileName : "",
                 backText: face === "back" ? text : "",
                 backMedia: face === "back" ? mediaFileName : "",
-                level: 0, // Niveau initial à 0
+                themeId: themeIdValid, // Associer la carte au thème
+                level: 0,
             };
 
             const addRequest = cardStore.add(newCard);
@@ -112,7 +124,7 @@ export default function CartesComponent() {
         getRequest.onsuccess = () => {
             const card = getRequest.result as Card;
             if (card) {
-                card.level = Math.max(0, Math.min(10, (card.level || 0) + delta)); // Niveau entre 0 et 10
+                card.level = Math.max(0, Math.min(10, (card.level || 0) + delta));
                 const updateRequest = cardStore.put(card);
                 updateRequest.onsuccess = () => AfficheCartes();
             }

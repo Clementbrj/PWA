@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { catdb } from "../bdd/bdd.tsx";
 
+import "../css/Cat.css"
+
 // Structure & type la categorie
 interface Category {
   id?: number; // Ajouté pour gérer l'ID généré par IndexedDB (AUTO_INCREMENT)
@@ -46,6 +48,10 @@ export default function CategoryComponent() {
 
   // Gestion d'envoi ---
   const envoi = async (event: React.FormEvent) => {
+    if (categoryName===""){
+      alert("Il faut renseigner un nom de catégorie !");
+    } else {
+
     event.preventDefault();
 
     // Variables d'interactions
@@ -67,6 +73,7 @@ export default function CategoryComponent() {
     AfficheCategorie();
     setCategoryName("");
     setCategoryDesc("");
+  }
   };
 
   // Navigation dans une categorie ---
@@ -75,8 +82,8 @@ export default function CategoryComponent() {
   };
 
   return (
-    <div>
-      <form onSubmit={envoi}>
+    <div className="background">
+      <form onSubmit={envoi} className="FormContent">
         <h2>Ajouter une catégorie</h2>
         <input
           type="text"
@@ -93,15 +100,15 @@ export default function CategoryComponent() {
         <button type="submit">Ajouter</button>
       </form>
       <div>
-        <h2>Liste des catégories</h2>
-
-        {/* Parcours l'objet categories (laisser id ? :/ ) */}
-        {categories.map((category) => (
-            <li key={category.id} onClick={() => CategorieClick(category.id!)}>
-              {category.name} (ID: {category.id}) - {category.desc}
+        <h2>Liste de vos catégories</h2>
+          <ul className="categoryList">
+          {categories.map((category) => (
+            <li key={category.id} className="categoryItem" onClick={() => CategorieClick(category.id!)}>
+              <h3>{category.name} (ID: {category.id})</h3>
+              <p>{category.desc}</p>
             </li>
           ))}
-
+        </ul>
       </div>
     </div>
   );
