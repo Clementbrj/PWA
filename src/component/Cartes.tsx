@@ -9,20 +9,21 @@ interface Card {
     frontMedia?: string;
     backText?: string;
     backMedia?: string;
-    level?: number; // Nouveau champ pour le niveau
+    level?: number;
+    nextReview?: number;
 }
 
 export default function CartesComponent() {
     const [cards, setCards] = useState<Card[]>([]);
     const [selectedCardId, setSelectedCardId] = useState<number | "new">("new");
     const [cardName, setCardName] = useState("");
+    const [frontText, setFrontText] = useState("");
+    const [backText, setBackText] = useState("");
+    const [frontMedia, setFrontMedia] = useState<File | null>(null);
+    const [backMedia, setBackMedia] = useState<File | null>(null);
     const [visibleSide, setVisibleSide] = useState<{ [key: number]: "front" | "back" }>({});
-    const [face, setFace] = useState<"front" | "back">("front");
-    const [text, setText] = useState("");
-    const [mediaFile, setMediaFile] = useState<File | null>(null);
     const navigate = useNavigate();
 
-    // Charger les cartes depuis IndexedDB
     const AfficheCartes = async () => {
         const db = await catdb();
         const transaction = db.transaction(["cards"], "readonly");
@@ -40,40 +41,39 @@ export default function CartesComponent() {
         AfficheCartes();
     }, []);
 
-    // Gérer la sélection d'une carte
     useEffect(() => {
         if (selectedCardId === "new") {
             setCardName("");
-            setText("");
+            setFrontText("");
+            setBackText("");
         } else {
             const card = cards.find((c) => c.id === selectedCardId);
             if (card) {
                 setCardName(card.name);
-                setText(face === "front" ? card.frontText || "" : card.backText || "");
+                setFrontText(card.frontText || "");
+                setBackText(card.backText || "");
             }
         }
-    }, [selectedCardId, face, cards]);
+    }, [selectedCardId, cards]);
 
-    // Gestion de l'envoi
     const envoi = async (event: React.FormEvent) => {
         event.preventDefault();
         const db = await catdb();
         const transaction = db.transaction(["cards"], "readwrite");
         const cardStore = transaction.objectStore("cards");
 
-        let mediaFileName = "";
-        if (mediaFile) {
-            mediaFileName = mediaFile.name;
-        }
+        let frontMediaName = frontMedia ? frontMedia.name : "";
+        let backMediaName = backMedia ? backMedia.name : "";
 
         if (selectedCardId === "new") {
             const newCard: Card = {
                 name: cardName || `Carte ${cards.length + 1}`,
-                frontText: face === "front" ? text : "",
-                frontMedia: face === "front" ? mediaFileName : "",
-                backText: face === "back" ? text : "",
-                backMedia: face === "back" ? mediaFileName : "",
-                level: 0, // Niveau initial à 0
+                frontText,
+                frontMedia: frontMediaName,
+                backText,
+                backMedia: backMediaName,
+                level: 1,
+                nextReview: Date.now(),
             };
 
             const addRequest = cardStore.add(newCard);
@@ -84,48 +84,54 @@ export default function CartesComponent() {
                 const existingCard = getRequest.result as Card;
 
                 existingCard.name = cardName;
-
-                if (face === "front") {
-                    existingCard.frontText = text || existingCard.frontText;
-                    existingCard.frontMedia = mediaFileName || existingCard.frontMedia;
-                } else {
-                    existingCard.backText = text || existingCard.backText;
-                    existingCard.backMedia = mediaFileName || existingCard.backMedia;
-                }
+                existingCard.frontText = frontText || existingCard.frontText;
+                existingCard.frontMedia = frontMediaName || existingCard.frontMedia;
+                existingCard.backText = backText || existingCard.backText;
+                existingCard.backMedia = backMediaName || existingCard.backMedia;
 
                 const updateRequest = cardStore.put(existingCard);
                 updateRequest.onsuccess = () => AfficheCartes();
             };
         }
 
-        setText("");
-        setMediaFile(null);
+        setFrontText("");
+        setBackText("");
+        setFrontMedia(null);
+        setBackMedia(null);
     };
 
-    // Modifier le niveau d'une carte
-    const modifierNiveau = async (cardId: number, delta: number) => {
+    const modifierNiveau = async (cardId: number, increment: number) => {
         const db = await catdb();
         const transaction = db.transaction(["cards"], "readwrite");
         const cardStore = transaction.objectStore("cards");
-
         const getRequest = cardStore.get(cardId);
+
         getRequest.onsuccess = () => {
-            const card = getRequest.result as Card;
-            if (card) {
-                card.level = Math.max(0, Math.min(10, (card.level || 0) + delta)); // Niveau entre 0 et 10
-                const updateRequest = cardStore.put(card);
-                updateRequest.onsuccess = () => AfficheCartes();
+            const card = getRequest.ressult as Card;
+            if (!card) return;
+
+            if (increment > 0) {
+                card.level = (card.level || 1) + increment;
+                card.nextReview = Date.now() + Math.pow(2, card.level) * 24 * 60 * 60 * 1000;
+            } else {
+                card.level = 1;
+                card.nextReview = Date.now();
             }
+
+            const updateRequest = cardStore.put(card);
+            updateRequest.onsuccess = () => AfficheCartes();
         };
     };
 
-    // Basculer entre recto et verso
     const toggleSide = (cardId: number) => {
         setVisibleSide((prev) => ({
             ...prev,
-            [cardId]: prev[cardId] === "front" ? "back" : "front",
+            [cardId]: prev[cardId] === "back" ? "front" : "back",
         }));
     };
+
+    const today = Date.now();
+    const cardsToReview = cards.filter(card => (card.nextReview || 0) <= today);
 
     return (
         <div>
@@ -143,53 +149,40 @@ export default function CartesComponent() {
                 </select>
 
                 <label>Nom de la carte :</label>
-                <input
-                    type="text"
-                    placeholder="Nom de la carte"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                />
+                <input type="text" placeholder="Nom de la carte" value={cardName} onChange={(e) => setCardName(e.target.value)} />
 
-                <label>Recto ou Verso :</label>
-                <select value={face} onChange={(e) => setFace(e.target.value as "front" | "back")}>
-                    <option value="front">Recto</option>
-                    <option value="back">Verso</option>
-                </select>
+                <label>Recto :</label>
+                <input type="text" placeholder="Texte du recto" value={frontText} onChange={(e) => setFrontText(e.target.value)} />
+                <input type="file" accept="image/*,audio/*,video/*" onChange={(e) => setFrontMedia(e.target.files?.[0] || null)} />
 
-                <input
-                    type="text"
-                    placeholder="Texte"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                />
-                <input type="file" accept="image/*,audio/*,video/*" onChange={(e) => setMediaFile(e.target.files?.[0] || null)} />
+                <label>Verso :</label>
+                <input type="text" placeholder="Texte du verso" value={backText} onChange={(e) => setBackText(e.target.value)} />
+                <input type="file" accept="image/*,audio/*,video/*" onChange={(e) => setBackMedia(e.target.files?.[0] || null)} />
+
                 <button type="submit">Valider</button>
             </form>
 
             <div>
-                <h2>Liste des cartes</h2>
-                {cards.map((card) => (
+                <h2>Cartes à réviser</h2>
+                {cardsToReview.map((card) => (
                     <div key={card.id} style={{ border: "1px solid #ccc", padding: "10px", margin: "10px 0", textAlign: "center" }}>
-                        <h3>{card.name}</h3>
-                        <p><strong>Niveau:</strong> {card.level || 0} / 10</p>
+                        <h3>{card.name} - Niveau : {card.level}</h3>
 
                         {visibleSide[card.id!] !== "back" ? (
                             <div>
                                 <p>{card.frontText}</p>
-                                {card.frontMedia && <p>{card.frontMedia}</p>}
+                                {card.frontMedia && <p>📂 {card.frontMedia}</p>}
                             </div>
                         ) : (
                             <div>
                                 <p>{card.backText}</p>
-                                {card.backMedia && <p>{card.backMedia}</p>}
-                                <button onClick={() => modifierNiveau(card.id!, 1)}>✅ Réussi</button>
-                                <button onClick={() => modifierNiveau(card.id!, -1)}>❌ Raté</button>
+                                {card.backMedia && <p>📂 {card.backMedia}</p>}
+                                <button onClick={() => modifierNiveau(card.id!, 1)}>✔️ Réussi</button>
+                                <button onClick={() => modifierNiveau(card.id!, 0)}>❌ Raté</button>
                             </div>
                         )}
 
-                        <button onClick={() => toggleSide(card.id!)}>
-                            {visibleSide[card.id!] === "back" ? "Voir le recto" : "Voir le verso"}
-                        </button>
+                        <button onClick={() => toggleSide(card.id!)}>Voir {visibleSide[card.id!] === "back" ? "le recto" : "le verso"}</button>
                     </div>
                 ))}
             </div>
