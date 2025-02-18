@@ -1,0 +1,165 @@
+.form_cartes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 5%;
+}
+.titre_form_cartes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 0 2% 0;
+}
+.container_info_form_cartes{
+    display: flex;
+    flex-direction: column;
+    background-color: #efecec;
+    padding: 3%;
+    border-radius: 20px;
+}
+.detail_cartes {
+    display: flex;
+    flex-direction: column;
+}
+.liste_cartes {
+    display: flex;
+    border: solid 1px;
+    padding: 2%;
+    justify-content: space-evenly;
+}
+.container_liste_cartes {
+    text-align: center;
+    border: 1px solid;
+    padding: 5% 2%;
+    margin: 3% 5%;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+.input_cartes {
+    padding: 3%;
+    border-radius: 10px;
+    border: 2px solid;
+}
+.label_cartes {
+    font-size: 1.2em;
+}
+.container_form_nom_cartes {
+    display: flex;
+    flex-direction: column;
+    margin: 2% 0%;
+}
+.container_form_recto{
+    display: flex;
+    flex-direction: column;
+    margin: 2% 0%;
+}
+.container_form_verso{
+    display: flex;
+    flex-direction: column;
+    margin: 2% 0%;
+}
+
+.container_bouton_valider {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.select_cartes{
+    border: solid;
+}
+@media (min-width: 1024px) {
+    .container_form_desktop {
+        display: flex;
+    }
+}
+@media (min-width: 1024px) {
+    .container_info_form_cartes {
+        width: min-content;
+    }
+    .container_form_verso {
+        margin-left: 2%;
+    }
+}
+
+@media (max-width: 480px) {
+    .liste_cartes{
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.ReturnArrow{
+    font-size:100%;
+    text-align: center;
+    border: 1px solid;
+    border-radius: 1% 0 5% 5%;
+    margin: 1% 1% 1% 1%;
+}
+.bouton_valider_cartes {
+    background-color: #c8c8f5;
+    padding: 2% 10%;
+    border-radius: 10px;
+}
+.ReturnArrow:hover{
+    cursor:pointer;
+}
+
+.ReturnContainer{
+    display: flex;
+}
+.label_cartes {
+    margin: 2% 0%;
+}
+.import_media {
+    margin-top: 5%;
+}
+.container_cartes{
+    background-color: #efecec;
+    margin: 2%;
+    padding: 2%;
+    border-radius: 10px;
+}
+.titre_liste_cartes {
+    display: flex;
+    justify-content: center;
+    padding: 2%;
+
+}
+.titre_cartes{
+    margin: 0%;
+}
+.bouton_change_side{
+    padding: 2%;
+    border-radius: 10px;
+    border: 2px solid;
+    background-color: #c8c8f5;
+}
+.container_bouton_choix{
+    padding: 2%
+}
+.bouton_choix1{
+    padding: 2%;
+    border-radius: 10px;
+    border: 2px solid;
+    background-color: #9ff17e;
+    margin-right: 5%;
+}
+.bouton_choix2{
+    padding: 2%;
+    border-radius: 10px;
+    border: 2px solid;
+    background-color: #f97777;
+}
+.suppression_cartes{
+    padding: 2%;
+    border-radius: 10px;
+    border: 2px solid;
+    background-color: #fdfdfd;
+}
+.container_bouton_suppression_cartes{
+    padding: 2%;
+
+}
+
+
