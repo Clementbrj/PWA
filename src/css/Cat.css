@@ -59,11 +59,19 @@
   cursor: pointer;
 }
 
-.category-item:hover {
+.categoryItem:hover {
   transform: translateY(-3px);
   background-color: #f1d5d5;
 }
 
-.category-item h3 {
+.categoryItem h3 {
   color: #423d3d;
+}
+
+.CategoryInteract :hover{
+  cursor:grab;
+}
+
+.containerEdit{
+  display:flex;
 }

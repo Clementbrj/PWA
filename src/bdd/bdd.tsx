@@ -1,4 +1,8 @@
+  // background-sync & gère les notifs
+  // Manifest générer le logo de l'executable + le nom d'application
 
+
+  
 // Fonction pour créer la structure dans l'IndexDb
 export async function catdb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
