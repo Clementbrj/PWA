@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { catdb } from "../bdd/bdd.tsx";
 import "../css/Cartes.css";
-
 
 interface Card {
     id?: number;
@@ -11,9 +10,9 @@ interface Card {
     frontMedia?: string;
     backText?: string;
     backMedia?: string;
+    themeId?: number; // Ajout de la gestion du thème
     level?: number;
     nextReview?: number;
-
 }
 
 export default function CartesComponent() {
@@ -27,34 +26,53 @@ export default function CartesComponent() {
     const [visibleSide, setVisibleSide] = useState<{ [key: number]: "front" | "back" }>({});
     const navigate = useNavigate();
 
+    // Récupérer le themeId depuis les paramètres d'URL
+    const { themeId } = useParams<{ themeId: string }>();
+    const themeIdValid = themeId ? parseInt(themeId, 10) : NaN;
+
+    // Charger les cartes depuis IndexedDB en filtrant par themeId
     const AfficheCartes = async () => {
         const db = await catdb();
         const transaction = db.transaction(["cards"], "readonly");
         const cardStore = transaction.objectStore("cards");
-        const recupCartes = cardStore.getAll();
 
-        recupCartes.onsuccess = () => {
-            if (recupCartes.result) {
-                setCards(recupCartes.result as Card[]);
-            }
-        };
+        if (!isNaN(themeIdValid)) {
+            // Utiliser l'index "themeId" pour récupérer uniquement les cartes du thème courant
+            const index = cardStore.index("themeId");
+            const recupCartes = index.getAll(themeIdValid);
+            recupCartes.onsuccess = () => {
+                if (recupCartes.result) {
+                    setCards(recupCartes.result as Card[]);
+                }
+            };
+        } else {
+            console.error("ThemeId invalide :", themeId);
+            // Optionnel : rediriger ou afficher un message d'erreur
+        }
     };
 
     useEffect(() => {
-        AfficheCartes();
+        if (isNaN(themeIdValid)) {
+            console.error("ThemeId n'est pas un nombre valide :", themeId);
+            // navigate("/"); // Rediriger vers la page d'accueil ou une page d'erreur si souhaité
+        } else {
+            AfficheCartes();
+        }
 
-        if ('serviceWorker' in navigator) {
-            console.log('Service Worker');
-            window.addEventListener('load', () => {
-                const wb = new Workbox('/service-worker.js');
-                wb.register().then(() => {
-                    console.log('Service Worker enregistré avec succès');
-                }).catch((error) => {
-                    console.error('Échec de l\'enregistrement du Service Worker:', error);
-                });
+        if ("serviceWorker" in navigator) {
+            console.log("Service Worker");
+            window.addEventListener("load", () => {
+                const wb = new Workbox("/service-worker.js");
+                wb.register()
+                    .then(() => {
+                        console.log("Service Worker enregistré avec succès");
+                    })
+                    .catch((error) => {
+                        console.error("Échec de l'enregistrement du Service Worker:", error);
+                    });
             });
         }
-    }, []);
+    }, [themeId]);
 
     useEffect(() => {
         if (selectedCardId === "new") {
@@ -87,6 +105,7 @@ export default function CartesComponent() {
                 frontMedia: frontMediaName,
                 backText,
                 backMedia: backMediaName,
+                themeId: themeIdValid, // Association du thème à la carte
                 level: 1,
                 nextReview: Date.now(),
             };
@@ -97,6 +116,7 @@ export default function CartesComponent() {
             const getRequest = cardStore.get(selectedCardId);
             getRequest.onsuccess = () => {
                 const existingCard = getRequest.result as Card;
+                if (!existingCard) return;
 
                 existingCard.name = cardName;
                 existingCard.frontText = frontText || existingCard.frontText;
@@ -109,6 +129,7 @@ export default function CartesComponent() {
             };
         }
 
+        // Réinitialisation des champs
         setFrontText("");
         setBackText("");
         setFrontMedia(null);
@@ -127,7 +148,7 @@ export default function CartesComponent() {
 
             if (increment > 0) {
                 card.level = (card.level || 1) + increment;
-                card.nextReview = Date.now(); /*+ Math.pow(2, card.level) * 24 * 60 * 60 * 1000*/
+                card.nextReview = Date.now(); // Possibilité de modifier le calcul pour un système de révision
             } else {
                 card.level = 1;
                 card.nextReview = Date.now();
@@ -144,11 +165,9 @@ export default function CartesComponent() {
         const cardStore = transaction.objectStore("cards");
 
         const deleteRequest = cardStore.delete(cardId);
-
         deleteRequest.onsuccess = () => {
             AfficheCartes();
         };
-
         deleteRequest.onerror = (event) => {
             console.error("Erreur lors de la suppression de la carte", event);
         };
@@ -209,7 +228,6 @@ export default function CartesComponent() {
                 {cardsToReview.map((card) => (
                     <div key={card.id} className="container_liste_cartes">
                         <h3 className="titre_cartes">{card.name} - Niveau : {card.level}</h3>
-
                         {visibleSide[card.id!] !== "back" ? (
                             <div>
                                 <p>{card.frontText}</p>
@@ -225,7 +243,6 @@ export default function CartesComponent() {
                                 </div>
                             </div>
                         )}
-
                         <button className="bouton_change_side" onClick={() => toggleSide(card.id!)}>Voir {visibleSide[card.id!] === "back" ? "le recto" : "le verso"}</button>
                         <div className="container_bouton_suppression_cartes">
                             <button className="suppression_cartes" onClick={() => Supprimer(card.id!)}>Supprimer la carte</button>
