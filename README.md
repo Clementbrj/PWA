@@ -1,10 +1,16 @@
 ---------------------
-Edit : 30/01/2025
+Edit : 13/02/2025
 Author : Clementbrj
-TItle : Setup de la structure 
+Title : Liaison des 3 pages
 
 Description : 
-Structure théorique du projet, possibilité d'évolution et de moficiations au fil du temps
+Liaisons des catégories, thèmes et cartes entre eux.
+Mise en place d'un css pour l'acceuil avec les catégories
+
+TODO : 
+fleche pour revenir en arrière
+css des themes & des cartes
+finir le système de niveau (ethan)
 
 ---------------------
 Help : 
