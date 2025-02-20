@@ -148,7 +148,7 @@ export default function CartesComponent() {
 
             if (increment > 0) {
                 card.level = (card.level || 1) + increment;
-                card.nextReview = Date.now(); // Possibilité de modifier le calcul pour un système de révision
+                card.nextReview = Date.now()+ Math.pow(2, card.level) * 24 * 60 * 60 * 1000;
             } else {
                 card.level = 1;
                 card.nextReview = Date.now();
