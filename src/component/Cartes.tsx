@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { catdb } from "../bdd/bdd.tsx";
 import "../css/Cartes.css";
+import {Workbox} from "workbox-window";
+
 
 interface Card {
     id?: number;
@@ -62,7 +64,7 @@ export default function CartesComponent() {
         if ("serviceWorker" in navigator) {
             console.log("Service Worker");
             window.addEventListener("load", () => {
-                const wb = new Workbox("/service-worker.js");
+                const wb = new Workbox("/sw.js");
                 wb.register()
                     .then(() => {
                         console.log("Service Worker enregistré avec succès");
@@ -95,17 +97,17 @@ export default function CartesComponent() {
         const transaction = db.transaction(["cards"], "readwrite");
         const cardStore = transaction.objectStore("cards");
 
-        let frontMediaName = frontMedia ? frontMedia.name : "";
-        let backMediaName = backMedia ? backMedia.name : "";
+        let frontMediaUrl = frontMedia ? URL.createObjectURL(frontMedia) : "";
+        let backMediaUrl = backMedia ? URL.createObjectURL(backMedia) : "";
 
         if (selectedCardId === "new") {
             const newCard: Card = {
                 name: cardName || `Carte ${cards.length + 1}`,
                 frontText,
-                frontMedia: frontMediaName,
+                frontMedia: frontMediaUrl,
                 backText,
-                backMedia: backMediaName,
-                themeId: themeIdValid, // Association du thème à la carte
+                backMedia: backMediaUrl,
+                themeId: themeIdValid,
                 level: 1,
                 nextReview: Date.now(),
             };
@@ -120,21 +122,21 @@ export default function CartesComponent() {
 
                 existingCard.name = cardName;
                 existingCard.frontText = frontText || existingCard.frontText;
-                existingCard.frontMedia = frontMediaName || existingCard.frontMedia;
+                existingCard.frontMedia = frontMediaUrl || existingCard.frontMedia;
                 existingCard.backText = backText || existingCard.backText;
-                existingCard.backMedia = backMediaName || existingCard.backMedia;
+                existingCard.backMedia = backMediaUrl || existingCard.backMedia;
 
                 const updateRequest = cardStore.put(existingCard);
                 updateRequest.onsuccess = () => AfficheCartes();
             };
         }
 
-        // Réinitialisation des champs
         setFrontText("");
         setBackText("");
         setFrontMedia(null);
         setBackMedia(null);
     };
+
 
     const modifierNiveau = async (cardId: number, increment: number) => {
         const db = await catdb();
@@ -148,7 +150,7 @@ export default function CartesComponent() {
 
             if (increment > 0) {
                 card.level = (card.level || 1) + increment;
-                card.nextReview = Date.now()+ Math.pow(2, card.level) * 24 * 60 * 60 * 1000;
+                card.nextReview = Date.now() + Math.pow(2, card.level - 1) * 86400000;
             } else {
                 card.level = 1;
                 card.nextReview = Date.now();
@@ -172,6 +174,81 @@ export default function CartesComponent() {
             console.error("Erreur lors de la suppression de la carte", event);
         };
     };
+    const renderMedia = (mediaUrl: string | undefined) => {
+        if (!mediaUrl) return null;
+
+        // Vérifier si c'est une URL blob
+        console.log("Affichage du média :", mediaUrl);
+
+        const extension = mediaUrl.split('.').pop()?.toLowerCase();
+
+        if (mediaUrl.startsWith("blob:") || extension?.match(/(jpg|jpeg|png|gif|webp)/)) {
+            return <img src={mediaUrl} alt="Image" className="media-preview" />;
+        }
+        if (extension?.match(/(mp3|wav|ogg)/)) {
+            return <audio controls><source src={mediaUrl} type={`audio/${extension}`} />Votre navigateur ne supporte pas l'audio.</audio>;
+        }
+        if (extension?.match(/(mp4|webm|ogg)/)) {
+            return <video controls><source src={mediaUrl} type={`video/${extension}`} />Votre navigateur ne supporte pas la vidéo.</video>;
+        }
+
+        return <p>📂 Fichier non reconnu</p>;
+    };
+
+    useEffect(() => {
+        return () => {
+            if (frontMedia) URL.revokeObjectURL(frontMedia as unknown as string);
+            if (backMedia) URL.revokeObjectURL(backMedia as unknown as string);
+        };
+    }, [frontMedia, backMedia]);
+
+    const demanderPermissionNotification = async () => {
+        if (!("Notification" in window)) {
+            console.error("Les notifications ne sont pas supportées par ce navigateur.");
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+            console.log("Permission de notification accordée.");
+        } else {
+            console.warn("Permission de notification refusée.");
+        }
+    };
+
+    useEffect(() => {
+        demanderPermissionNotification();
+    }, []);
+    const envoyerNotificationCartes = () => {
+        const aujourdHui = Date.now();
+        const cartesAReviser = cards.filter(card => (card.nextReview || 0) <= aujourdHui);
+
+        if (cartesAReviser.length > 0) {
+            const titre = "Cartes à réviser 📚";
+            const options = {
+                body: `Tu as ${cartesAReviser.length} carte(s) à réviser.`
+            };
+
+            if (Notification.permission === "granted") {
+                new Notification(titre, options);
+            }
+        }
+    };
+
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            envoyerNotificationCartes();
+        }, 60 * 60 * 1000); // Vérification toutes les heures
+
+        return () => clearInterval(interval);
+    }, [cards]);
+    useEffect(() => {
+        return () => {
+            if (frontMedia) URL.revokeObjectURL(frontMedia as unknown as string);
+            if (backMedia) URL.revokeObjectURL(backMedia as unknown as string);
+        };
+    }, [frontMedia, backMedia]);
 
     const toggleSide = (cardId: number) => {
         setVisibleSide((prev) => ({
@@ -231,12 +308,12 @@ export default function CartesComponent() {
                         {visibleSide[card.id!] !== "back" ? (
                             <div>
                                 <p>{card.frontText}</p>
-                                {card.frontMedia && <p>📂 {card.frontMedia}</p>}
+                                {renderMedia(card.frontMedia)}
                             </div>
                         ) : (
                             <div>
                                 <p>{card.backText}</p>
-                                {card.backMedia && <p>📂 {card.backMedia}</p>}
+                                {renderMedia(card.backMedia)}
                                 <div className="container_bouton_choix">
                                     <button className="bouton_choix1" onClick={() => modifierNiveau(card.id!, 1)}>✔️ Réussi</button>
                                     <button className="bouton_choix2" onClick={() => modifierNiveau(card.id!, 0)}>❌ Raté</button>
