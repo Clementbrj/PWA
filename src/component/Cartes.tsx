@@ -26,6 +26,7 @@ export default function CartesComponent() {
     const [frontMedia, setFrontMedia] = useState<File | null>(null);
     const [backMedia, setBackMedia] = useState<File | null>(null);
     const [visibleSide, setVisibleSide] = useState<{ [key: number]: "front" | "back" }>({});
+    const [notification, setNotification] = useState<string | null>(null);
     const navigate = useNavigate();
 
     // Récupérer le themeId depuis les paramètres d'URL
@@ -54,10 +55,7 @@ export default function CartesComponent() {
     };
 
     useEffect(() => {
-        if (isNaN(themeIdValid)) {
-            console.error("ThemeId n'est pas un nombre valide :", themeId);
-            // navigate("/"); // Rediriger vers la page d'accueil ou une page d'erreur si souhaité
-        } else {
+        if (!isNaN(themeIdValid)) {
             AfficheCartes();
         }
 
@@ -75,6 +73,13 @@ export default function CartesComponent() {
             });
         }
     }, [themeId]);
+
+// 🔔 Vérifier les cartes à réviser dès le chargement
+    useEffect(() => {
+        if (cards.length > 0) {
+            envoyerNotificationCartes();
+        }
+    }, [cards]); // Exécute la fonction après le chargement des cartes
 
     useEffect(() => {
         if (selectedCardId === "new") {
@@ -150,16 +155,26 @@ export default function CartesComponent() {
 
             if (increment > 0) {
                 card.level = (card.level || 1) + increment;
-                card.nextReview = Date.now() + Math.pow(2, card.level - 1) * 86400000;
+                card.nextReview = Date.now() + Math.pow(2, card.level - 1) * 2;
             } else {
                 card.level = 1;
                 card.nextReview = Date.now();
             }
 
             const updateRequest = cardStore.put(card);
-            updateRequest.onsuccess = () => AfficheCartes();
+            updateRequest.onsuccess = () => {
+                AfficheCartes();
+
+                // 🔔 Vérifier si la carte doit être révisée et envoyer une notification
+                setTimeout(() => {
+                    if ((card.nextReview || 0) <= Date.now()) {
+                        envoyerNotificationCartes();
+                    }
+                }, 500); // Petit délai pour assurer que la mise à jour est prise en compte
+            };
         };
     };
+
 
     const Supprimer = async (cardId: number) => {
         const db = await catdb();
@@ -221,17 +236,15 @@ export default function CartesComponent() {
     }, []);
     const envoyerNotificationCartes = () => {
         const aujourdHui = Date.now();
-        const cartesAReviser = cards.filter(card => (card.nextReview || 0) <= aujourdHui);
+        const cartesAReviser = cards.filter(card => (card.nextReview || 0) < aujourdHui);
 
         if (cartesAReviser.length > 0) {
-            const titre = "Cartes à réviser 📚";
-            const options = {
-                body: `Tu as ${cartesAReviser.length} carte(s) à réviser.`
-            };
+            const message = `📚 Tu as ${cartesAReviser.length} carte(s) à réviser aujourd'hui.`;
+            setNotification(message); // 🔔 Afficher la notification sur la page
 
-            if (Notification.permission === "granted") {
-                new Notification(titre, options);
-            }
+            // ⏳ Cacher la notification après 5 secondes
+            setNotification(message);
+
         }
     };
 
@@ -243,6 +256,7 @@ export default function CartesComponent() {
 
         return () => clearInterval(interval);
     }, [cards]);
+
     useEffect(() => {
         return () => {
             if (frontMedia) URL.revokeObjectURL(frontMedia as unknown as string);
@@ -262,6 +276,11 @@ export default function CartesComponent() {
 
     return (
         <div>
+            {notification && (
+                <div className="notification-banner2">
+                    {notification}
+                </div>
+            )}
             <form onSubmit={envoi} className="form_cartes">
                 <div className="container_info_form_cartes">
                     <h1 className="titre_form_cartes">Ajouter / Modifier une carte</h1>
@@ -302,6 +321,7 @@ export default function CartesComponent() {
 
             <div className="container_cartes">
                 <h2 className="titre_liste_cartes">Cartes à réviser</h2>
+                {notification && <p>{notification}</p>}
                 {cardsToReview.map((card) => (
                     <div key={card.id} className="container_liste_cartes">
                         <h3 className="titre_cartes">{card.name} - Niveau : {card.level}</h3>
@@ -316,7 +336,10 @@ export default function CartesComponent() {
                                 {renderMedia(card.backMedia)}
                                 <div className="container_bouton_choix">
                                     <button className="bouton_choix1" onClick={() => modifierNiveau(card.id!, 1)}>✔️ Réussi</button>
-                                    <button className="bouton_choix2" onClick={() => modifierNiveau(card.id!, 0)}>❌ Raté</button>
+                                    <button className="bouton_choix2" onClick={() => {
+                                        modifierNiveau(card.id!, 0);
+                                        setVisibleSide(prev => ({ ...prev, [card.id!]: "front" }));
+                                    }}>❌ Raté</button>
                                 </div>
                             </div>
                         )}
