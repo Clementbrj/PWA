@@ -155,7 +155,7 @@ export default function CartesComponent() {
 
             if (increment > 0) {
                 card.level = (card.level || 1) + increment;
-                card.nextReview = Date.now() + Math.pow(2, card.level - 1) * 2;
+                card.nextReview = Date.now() + Math.pow(2, card.level - 1) * 86400000;
             } else {
                 card.level = 1;
                 card.nextReview = Date.now();
