@@ -27,12 +27,12 @@ interface Card {
 export default function ThemeComponent() {
   const [themeName, setThemeName] = useState("");
   const [themeDesc, setThemeDesc] = useState("");
-  const [themes, setThemes] = useState<Theme[]>([]);
-  const [editThemeId, setEditThemeId] = useState<number | null>(null);
+  const [themes, setThemes] = useState<Theme[]>([]); // Liste des themes
+  const [editThemeId, setEditThemeId] = useState<number | null>(null); 
   const [editThemeName, setEditThemeName] = useState("");
   const [editThemeDesc, setEditThemeDesc] = useState("");
-  const { categoryId } = useParams<{ categoryId: string }>();
-  const navigate = useNavigate();
+  const { categoryId } = useParams<{ categoryId: string }>(); // PathParam pour la nav
+  const navigate = useNavigate(); // Navigation
 
   // Cast le pathparam en int
   const validCategoryId = categoryId ? parseInt(categoryId, 10) : NaN;
@@ -247,13 +247,16 @@ export default function ThemeComponent() {
   };
 
   return (
-    <div className="background">
-      <div className="ReturnContainer">
+    <main className="background2">
+      {/* Retour */}
+      <header className="ReturnContainer">
         <p onClick={NavBack} className="ReturnArrow">
           Retour en Arrière ←
         </p>
-      </div>
-      <div>
+      </header>
+
+      {/* Ajouter un theme */}
+      <section>
         <form onSubmit={envoi} className="FormContent">
           <h2>Ajouter un thème</h2>
           <input
@@ -270,9 +273,11 @@ export default function ThemeComponent() {
           />
           <button type="submit">Ajouter</button>
         </form>
-      </div>
-      <div>
-        <h2>Thèmes de la catégorie</h2>
+      </section>
+
+      {/* Liste des themes */}
+      <section>
+        <h2 className="center">Thèmes de la catégorie</h2>
         <ul className="ThemeList">
           {themes.map((theme) => (
             <li key={theme.id} className="ThemeItem">
@@ -303,7 +308,7 @@ export default function ThemeComponent() {
             </li>
           ))}
         </ul>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

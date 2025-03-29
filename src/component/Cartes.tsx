@@ -29,6 +29,9 @@ export default function CartesComponent() {
     const [notification, setNotification] = useState<string | null>(null);
     const navigate = useNavigate();
 
+    // Date
+    const [selectedDate, setSelectedDate] = useState("");
+
     // Récupérer le themeId depuis les paramètres d'URL
     const { themeId } = useParams<{ themeId: string }>();
     const themeIdValid = themeId ? parseInt(themeId, 10) : NaN;
@@ -274,52 +277,97 @@ export default function CartesComponent() {
     const today = Date.now();
     const cardsToReview = cards.filter(card => (card.nextReview || 0) <= today);
 
+    // ------------------- Simulation date 
+    const fakeDate = (newDate: Date): void => {
+        Date.now = () => newDate.getTime();
+    };
+    
+
+    
+    const SubmitDate = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault(); // Empêche le rechargement de la page
+            
+        if (!selectedDate){
+            return;
+        }
+        const newDate = new Date(selectedDate);
+        fakeDate(newDate);
+    };
+
+    const NavBack = () => {
+        navigate(-1);
+      };
+
     return (
-        <div>
+        <main>
+
             {notification && (
                 <div className="notification-banner2">
                     {notification}
                 </div>
             )}
-            <form onSubmit={envoi} className="form_cartes">
-                <div className="container_info_form_cartes">
-                    <h1 className="titre_form_cartes">Ajouter / Modifier une carte</h1>
-                    <div className="liste_cartes">
-                        <label className="label_cartes">Choisir une carte: </label>
-                        <select className="select_cartes" value={selectedCardId} onChange={(e) => setSelectedCardId(e.target.value === "new" ? "new" : Number(e.target.value))}>
-                            <option value="new">Créer une nouvelle carte</option>
-                            {cards.map((card) => (
-                                <option key={card.id} value={card.id}>
-                                    {card.name} (ID: {card.id})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="detail_cartes">
-                        <div className="container_form_nom_cartes">
-                            <label className="label_cartes">Nom de la carte :</label>
-                            <input type="text" className="input_cartes" placeholder="Nom de la carte" value={cardName} onChange={(e) => setCardName(e.target.value)} />
-                        </div>
-                        <div className="container_form_desktop">
-                            <div className="container_form_recto">
-                                <label className="label_cartes">Recto :</label>
-                                <input type="text" className="input_cartes" placeholder="Texte du recto" value={frontText} onChange={(e) => setFrontText(e.target.value)} />
-                                <input type="file" className="import_media" accept="image/*,audio/*,video/*" onChange={(e) => setFrontMedia(e.target.files?.[0] || null)} />
-                            </div>
-                            <div className="container_form_verso">
-                                <label className="label_cartes">Verso :</label>
-                                <input type="text" className="input_cartes" placeholder="Texte du verso" value={backText} onChange={(e) => setBackText(e.target.value)} />
-                                <input type="file" className="import_media" accept="image/*,audio/*,video/*" onChange={(e) => setBackMedia(e.target.files?.[0] || null)} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="container_bouton_valider">
-                        <button type="submit" className="bouton_valider_cartes">Valider</button>
-                    </div>
-                </div>
-            </form>
+            {/* Retour */}
 
-            <div className="container_cartes">
+            <section>
+                <form onSubmit={envoi} className="form_cartes">
+                    <div className="container_info_form_cartes">
+                        <h1 className="titre_form_cartes">Ajouter / Modifier une carte</h1>
+                        <div className="liste_cartes">
+                            <label className="label_cartes">Choisir une carte: </label>
+                            <select className="select_cartes" value={selectedCardId} onChange={(e) => setSelectedCardId(e.target.value === "new" ? "new" : Number(e.target.value))}>
+                                <option value="new">Créer une nouvelle carte</option>
+                                {cards.map((card) => (
+                                    <option key={card.id} value={card.id}>
+                                        {card.name} (ID: {card.id})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="detail_cartes">
+                            <div className="container_form_nom_cartes">
+                                <label className="label_cartes">Nom de la carte :</label>
+                                <input type="text" className="input_cartes" placeholder="Nom de la carte" value={cardName} onChange={(e) => setCardName(e.target.value)} />
+                            </div>
+                            <div className="container_form_desktop">
+                                <div className="container_form_recto">
+                                    <label className="label_cartes">Recto :</label>
+                                    <input type="text" className="input_cartes" placeholder="Texte du recto" value={frontText} onChange={(e) => setFrontText(e.target.value)} />
+                                    <input type="file" className="import_media" accept="image/*,audio/*,video/*" onChange={(e) => setFrontMedia(e.target.files?.[0] || null)} />
+                                </div>
+                                <div className="container_form_verso">
+                                    <label className="label_cartes">Verso :</label>
+                                    <input type="text" className="input_cartes" placeholder="Texte du verso" value={backText} onChange={(e) => setBackText(e.target.value)} />
+                                    <input type="file" className="import_media" accept="image/*,audio/*,video/*" onChange={(e) => setBackMedia(e.target.files?.[0] || null)} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="container_bouton_valider">
+                            <button type="submit" className="bouton_valider_cartes">Valider</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+            {/* TEST révision espacée */}
+            <header className="ReturnContainer">
+                <p onClick={NavBack} className="ReturnArrow">
+                    Retour en Arrière ←
+                </p>
+            </header>
+
+            <p className="datesimul"><strong>Simulateur de dates</strong></p>
+            <form className="datesimul" onSubmit={SubmitDate}>
+            <input 
+                type="date" 
+                onChange={(e) => setSelectedDate(e.target.value)} 
+                required
+            />
+            <button type="submit">Changer la date</button>
+            </form>
+            <p style={{ textAlign: "center" }}>
+                Merci de créer vos propres cartes pour tester la révision espacée
+            </p>
+
+            <section className="container_cartes">
                 <h2 className="titre_liste_cartes">Cartes à réviser</h2>
                 {notification && <p>{notification}</p>}
                 {cardsToReview.map((card) => (
@@ -349,7 +397,7 @@ export default function CartesComponent() {
                         </div>
                     </div>
                 ))}
-            </div>
-        </div>
+            </section>
+        </main>
     );
 }

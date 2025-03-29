@@ -75,3 +75,10 @@
 .containerEdit{
   display:flex;
 }
+
+.Simulation{
+  border-radius: 100px;
+  font-size: 110%;
+  display: flex;
+  margin-left: auto;
+}

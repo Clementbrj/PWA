@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { catdb } from "../bdd/bdd.tsx";
 import "../css/Cat.css";
-
+import generateData from "./simulateur.tsx"
 // Déclarer les structures de Categories ET de Theme
 interface Category {
   id?: number;
@@ -31,14 +31,13 @@ interface Card {
 // --------------
 // Composant
 export default function CategoryComponent() {
-  const [categoryName, setCategoryName] = useState(""); // CatName pour le form
-  const [categoryDesc, setCategoryDesc] = useState(""); // CatDesc pour le form
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryDesc, setCategoryDesc] = useState("");
   const [CategorieArray, setCategorieArray] = useState<Category[]>([]); // Stocker la liste des catégories
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
   const [editCategoryDesc, setEditCategoryDesc] = useState("");
   const navigate = useNavigate(); // Navigation dans la PWA
-
   //------------------------------------------
   // INDEX DB
   //------------------------------------------
@@ -256,30 +255,41 @@ export default function CategoryComponent() {
     navigate(`/themes/${categoryId}`);
   };
 
+  // Simuler des données
+  const simulate = async () => {
+    await generateData();
+    await ShowCategorie();
+  }
+
   return (
-    <div className="background">
-      <form onSubmit={envoi} className="FormContent">
-        <h2>Ajouter une catégorie</h2>
-        <input
-          type="text"
-          placeholder="Nom de la catégorie"
-          value={categoryName}
-          onChange={(e) => setCategoryName(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Description de la catégorie"
-          value={categoryDesc}
-          onChange={(e) => setCategoryDesc(e.target.value)}
-        />
-        <button type="submit">Ajouter</button>
-      </form>
-      <div>
+    <main className="background">
+      <button className="Simulation" onClick={()=>{simulate()}}>Simuler des données</button>
+      {/*  Ajouter une cat */}
+      <section>
+        <form onSubmit={envoi} className="FormContent">
+          <h2>Ajouter une catégorie</h2>
+          <input
+            type="text"
+            placeholder="Nom de la catégorie"
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Description de la catégorie"
+            value={categoryDesc}
+            onChange={(e) => setCategoryDesc(e.target.value)}
+          />
+          <button type="submit">Ajouter</button>
+        </form>
+      </section>
+
+      {/* Liste des cat */}
+      <section>
         <h2>Liste de vos catégories</h2>
         <ul className="categoryList">
           {CategorieArray.map((category) => (
             <li key={category.id} className="categoryItem">
-              {/* Vérifie si l'id de la cat à modifier = l'id de la cat en cours d'affichage pour mettre les inputs */}
               {editCategoryId === category.id ? (
                 <form onSubmit={(e) => SaveEditCategory(e, category.id!)} className="editForm">
                   <input
@@ -309,7 +319,7 @@ export default function CategoryComponent() {
             </li>
           ))}
         </ul>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

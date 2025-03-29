@@ -46,6 +46,7 @@ Avoir un terminal dans votre IDE et faites :
 - **Répétition espacée** : L'utilisateur peut personnaliser la révision en fonction des niveaux de difficulté et du nombre de cartes à voir chaque jour.
 - **Notifications** : L'utilisateur peut activer des rappels quotidiens via des notifications de navigateur.
 - **Mode hors-ligne** : L'application fonctionne sans connexion grâce à un service worker et un fichier MANIFEST.
+- **Simulation** : A l'acceuil / la page de cat. vous avez un bouton simulation, celui ci génère un contenu prédéfini, mais les cartes n'ont pas le système de révision éspacée, merci de créer vos propres cartes pour cet usage.
 
 ### Modalités de réalisation
 Le projet a été réalisé en binôme, composé de **Ethan Bermond** et **Clément Barjolle**.
@@ -72,6 +73,8 @@ Le projet est hébergé sur **GitHub**
     Categorie.tsx : Ce composant gère les catégories, permettant aux utilisateurs de créer, afficher, modifier et supprimer des catégories. Il inclut également la logique pour la suppression en cascade dans l'indexedDB.
 
     Theme.tsx : Ce composant gère les thèmes au sein d'une catégorie. Il permet aux utilisateurs d'ajouter, afficher, modifier et supprimer des thèmes. Il inclut également la logique pour la suppression en cascade dans l'indexedDB.
+
+    simulateur.tsx : Ce composant n'a pas de front, il contient une fonction qui génère 3 catégories, chacuns avec 2 thèmes et 5 cartes.
 
 
 **Sous-dossier css**
