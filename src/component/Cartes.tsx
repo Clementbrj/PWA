@@ -252,7 +252,7 @@ export default function CartesComponent() {
                         <input type="radio"  value="Oui"/>
                         <label htmlFor="html">Oui</label>
                         <input type="radio" value="Non"/>
-                        <label htmlFor="html">HTML</label>
+                        <label htmlFor="html">NON</label>
                     </form>
                 </div>
                 {cardsToReview.map((card) => (
